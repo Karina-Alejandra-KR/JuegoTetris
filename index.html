@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TETRIS</title>
+    <!--ICON-->
+    <link rel="icon" href="./src/img/logo-tetris.png" type="image/png">
+    <!--SCRIPT p5.js-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+</head>
+<body>
+    <!--ESTILOS-->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            filter: drop-shadow(5px 5px 2px rgba(0, 0, 0, 0.4));
+        }
+    </style>
+    <!--SCRIPTS EXTERNOS-->
+    <script src="./Tablero.js"></script>
+    <script src="./Tetrimino.js"></script>
+    <!--SCRIPT INTERNO-->
+    <script>
+        const MARGEN_TABLERO = 10
+        let regulador_velocidad_teclas = 0
+        let regulador_de_caida = 0
+        let lineas_hechas = 0
+
+        /*BACKGROUND*/
+        let angulo_fondo = Math.random() * 360
+        setInterval(() => {
+            document.body.style.background = `linear-gradient(
+            ${angulo_fondo}deg,
+            #F865D4,
+            #43C9CA`;
+            angulo_fondo += Math.random()
+        }, 20);
+
+        /*CAÍDA DE LAS PIEZAS*/
+        setInterval(() => {
+            if (millis() - regulador_de_caida < 300) {
+                return
+            }
+            regulador_de_caida = millis()
+            tetrimino.moverAbajo()
+        }, 500);
+
+        /*PROPIEDADES INICIALES DE OBJETOS Y VARIABLES*/
+        function setup() {
+            createCanvas(900, 600)
+
+            tablero = new Tablero()
+            crearMapeoBaseTetriminos()
+            tetrimino = new Tetrimino()
+            resizeCanvas(
+                tablero.ancho + 2 * MARGEN_TABLERO,
+                tablero.alto + 2 * MARGEN_TABLERO + 2*tablero.lado_celda
+            )
+        }
+
+        /*DIBUJO SOBRE EL CANVAS*/
+        function draw() {
+            clear()
+            dibujarPuntaje()
+            tablero.dibujar()
+            tetrimino.dibujar()
+            keyEventsTetris()
+        }
+        function dibujarPuntaje() {
+            push()
+            textSize(22)
+            strokeWeight(5)
+            stroke("white")
+            fill("black")
+            text(
+                "Líneas: " + lineas_hechas,
+                tablero.posición.x,
+                tablero.posición.y - tablero.lado_celda / 2
+            )
+            pop()
+        }
+
+        let límite_regulador_velocidad_teclas = 100
+
+        function keyEventsTetris() {
+            if (millis() - regulador_velocidad_teclas < límite_regulador_velocidad_teclas) {
+                return
+            }
+            límite_regulador_velocidad_teclas = 100
+            regulador_velocidad_teclas = millis()
+
+            if (keyIsDown(RIGHT_ARROW)) {
+                tetrimino.moverDerecha()
+                regulador_de_caida = millis()
+            }
+            if (keyIsDown(LEFT_ARROW)) {
+                tetrimino.moverIzquierda()
+                regulador_de_caida = millis()
+            }
+            if (keyIsDown(DOWN_ARROW)) {
+                tetrimino.moverAbajo()
+                regulador_de_caida = millis()
+            }
+            if (keyIsDown(UP_ARROW)) {
+                límite_regulador_velocidad_teclas = 150
+                tetrimino.girar()
+                regulador_de_caida = millis()
+            }
+            if (keyIsDown(32)) {
+                límite_regulador_velocidad_teclas = 200
+                tetrimino.ponerEnElFondo()
+                regulador_de_caida = millis()
+            }
+        }
+    </script>
+</body>
+</html>
